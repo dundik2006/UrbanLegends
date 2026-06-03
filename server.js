@@ -1520,6 +1520,3 @@ app.listen(PORT, async () => {
   await initializeCategories();
   console.log('Система достижений и категории инициализированы');
 });
-app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
-});
