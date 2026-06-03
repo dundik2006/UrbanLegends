@@ -1514,9 +1514,17 @@ app.get('/', (req, res) => {
 app.use(express.static(path.join(__dirname)));
 
 // Запуск сервера
-app.listen(PORT, async () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
-  await initializeAchievements();
-  await initializeCategories();
-  console.log('Система достижений и категории инициализированы');
-});
+mongoose.connect(process.env.MONGODB_URI)
+  .then(async () => {
+    console.log('MongoDB connected');
+
+    await initializeAchievements();
+    await initializeCategories();
+
+    app.listen(PORT, () => {
+      console.log(`Сервер запущен на порту ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error(err);
+  });
