@@ -46,6 +46,7 @@
             background-color: var(--color-primary);
             color: var(--color-text);
             line-height: 1.6;
+            line-width: 1.6;
             transition: var(--transition);
         }
 
@@ -96,6 +97,48 @@
             align-items: center;
             justify-content: center;
             color: white;
+        }
+
+        .nav-links a{
+            border-radius:12px;
+            transition:.25s;
+        }
+
+        .nav-links a:hover{
+            background:rgba(0,0,0,.04);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--color-text);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        nav a:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--color-accent);
+            transition: var(--transition);
+        }
+
+        nav a:hover:after {
+            width: 100%;
+        }
+
+        nav a:hover {
+            color: var(--color-accent);
         }
 
         .auth-buttons {
@@ -179,6 +222,9 @@
             font-weight: 700;
             margin-bottom: 0.5rem;
             line-height: 1.2;
+            background: linear-gradient(90deg, var(--color-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         .hero p2 {
             font-size: 4.5rem;
@@ -289,6 +335,36 @@
             box-shadow: var(--shadow-md);
         }
 
+        .legend-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .legend-card.drag-over {
+            border: 2px dashed var(--color-accent);
+            background-color: var(--color-accent-light);
+        }
+
+        .drag-handle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            cursor: grab;
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            transition: var(--transition);
+            background: rgba(0,0,0,0.1);
+        }
+
+        .drag-handle:hover {
+            background-color: var(--color-secondary);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
         .legend-image {
             height: 200px;
             width: 100%;
@@ -359,6 +435,29 @@
             color: var(--color-warning);
         }
 
+        .like-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-light);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .like-btn:hover {
+            color: var(--color-danger);
+        }
+
+        .like-btn.liked {
+            color: var(--color-danger);
+        }
+
+        .like-count {
+            font-size: 0.9rem;
+        }
+
         .comments-section {
             margin-top: 2rem;
             padding: 1.5rem;
@@ -426,36 +525,6 @@
             min-height: 80px;
         }
 
-        .delete-comment-btn {
-            background: none;
-            border: none;
-            color: var(--color-text-light);
-            cursor: pointer;
-            padding: 0.3rem;
-            border-radius: var(--radius);
-            transition: var(--transition);
-        }
-
-        .delete-comment-btn:hover {
-            color: var(--color-danger);
-            background-color: var(--color-primary);
-        }
-
-        .report-btn {
-            background: none;
-            border: none;
-            color: var(--color-text-light);
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: var(--radius);
-            transition: var(--transition);
-        }
-
-        .report-btn:hover {
-            color: var(--color-danger);
-            background-color: var(--color-secondary);
-        }
-
         .achievements-section {
             margin: 4rem 0;
         }
@@ -467,7 +536,7 @@
             margin-top: 2rem;
         }
 
-        .achievement-card {
+        .achievement-card{
             border-radius:24px;
             transition:.35s;
             padding: 1.5rem;
@@ -475,7 +544,7 @@
             text-align: center;
         }
 
-        .achievement-card:hover {
+        .achievement-card:hover{
             transform: translateY(-8px) scale(1.02);
             box-shadow: 0 25px 50px rgba(0,0,0,.1);
         }
@@ -641,6 +710,34 @@
             margin-bottom: 1rem;
         }
 
+        .games-button-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 100;
+        }
+
+        .games-button {
+            background-color: var(--color-accent);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .games-button:hover {
+            transform: scale(1.1);
+            background-color: var(--color-accent-dark);
+        }
+
         footer {
             padding: 4rem 0 2rem;
             background-color: var(--color-secondary);
@@ -802,37 +899,6 @@
             font-size: 3rem;
             color: var(--color-text-light);
             margin-bottom: 1rem;
-        }
-
-        .image-preview {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            border-radius: var(--radius);
-            overflow: hidden;
-        }
-
-        .image-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .remove-image {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: var(--color-danger);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
         }
 
         .admin-btn {
@@ -1028,6 +1094,63 @@
             color: white;
         }
 
+        .role-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .role-admin {
+            background-color: var(--color-accent);
+            color: white;
+        }
+
+        .role-moderator {
+            background-color: var(--color-warning);
+            color: black;
+        }
+
+        .role-user {
+            background-color: var(--color-text-light);
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .delete-comment-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-light);
+            cursor: pointer;
+            padding: 0.3rem;
+            border-radius: var(--radius);
+            transition: var(--transition);
+        }
+
+        .delete-comment-btn:hover {
+            color: var(--color-danger);
+            background-color: var(--color-primary);
+        }
+
+        .report-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-light);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            transition: var(--transition);
+        }
+
+        .report-btn:hover {
+            color: var(--color-danger);
+            background-color: var(--color-secondary);
+        }
+
         .notification {
             position: fixed;
             top: 1rem;
@@ -1042,6 +1165,12 @@
             align-items: center;
             gap: 1rem;
             animation: slideIn 0.3s ease;
+        }
+
+        .legend-date{
+            font-size:.85rem;
+            opacity:.7;
+            margin-top:8px;
         }
 
         .notification.error {
@@ -1099,8 +1228,170 @@
             gap: 1rem;
         }
 
-        .modern-card {
-            background: rgba(255,255,255,.06);
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: var(--color-secondary);
+            border-radius: var(--radius);
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+        }
+
+        #addLegendForm{
+            border-radius:28px;
+            padding:28px;
+            background:var(--color-card);
+            box-shadow:0 20px 50px rgba(0,0,0,.08);
+        }
+
+        #addLegendForm input,
+        #addLegendForm textarea,
+        #addLegendForm select{
+            border-radius:14px;
+            transition:.25s;
+        }
+
+        #addLegendForm input:focus,
+        #addLegendForm textarea:focus,
+        #addLegendForm select:focus{
+            box-shadow:0 0 0 4px rgba(74,144,226,.12);
+        }
+
+        .category-item:hover {
+            transform: translateX(5px);
+        }
+
+        .category-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .report-item {
+            background-color: var(--color-secondary);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--color-warning);
+        }
+
+        .report-item.resolved {
+            border-left-color: var(--color-success);
+        }
+
+        .report-item.rejected {
+            border-left-color: var(--color-danger);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .report-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--color-text-light);
+            font-size: 0.9rem;
+        }
+
+        .report-content {
+            margin-bottom: 1rem;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .image-preview {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .admin-panel{
+            background:var(--color-card);
+            border-radius:28px;
+            padding:30px;
+            box-shadow:0 20px 50px rgba(0,0,0,.08);
+        }
+
+        .admin-legend-item{
+            background:var(--color-background);
+            border-radius:22px;
+            padding:20px;
+            margin-bottom:16px;
+            border:1px solid rgba(0,0,0,.05);
+            transition:.3s;
+        }
+
+        .admin-legend-item:hover{
+            transform:translateY(-3px);
+            box-shadow:0 15px 30px rgba(0,0,0,.08);
+        }
+
+        .moderation-fulltext{
+            margin-top:12px;
+        }
+
+        .full-text-content{
+            margin-top:10px;
+            padding:16px;
+            border-left:4px solid var(--color-accent);
+            border-radius:12px;
+            background:rgba(0,0,0,.03);
+            line-height:1.8;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--color-danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .modern-card{
+            background:rgba(255,255,255,.06);
             backdrop-filter:blur(18px);
             border:1px solid rgba(255,255,255,.1);
             border-radius:24px;
@@ -1108,23 +1399,23 @@
             transition:.35s;
         }
 
-        .modern-card:hover {
+        .modern-card:hover{
             transform:translateY(-10px) scale(1.02);
             box-shadow:0 25px 50px rgba(0,0,0,.3);
         }
 
-        .card-image-wrapper {
+        .card-image-wrapper{
             position:relative;
             height:260px;
         }
 
-        .card-overlay {
+        .card-overlay{
             position:absolute;
             inset:0;
             background:linear-gradient(to top, rgba(0,0,0,.85), transparent 70%);
         }
 
-        .card-top {
+        .card-top{
             position:absolute;
             top:15px;
             left:15px;
@@ -1133,7 +1424,7 @@
             justify-content:space-between;
         }
 
-        .category-badge {
+        .category-badge{
             padding:8px 14px;
             border-radius:999px;
             color:white;
@@ -1145,7 +1436,7 @@
         .cat-architecture{background:#06b6d4;}
         .cat-modern{background:#22c55e;}
 
-        .rating-pill {
+        .rating-pill{
             background:rgba(255,255,255,.2);
             backdrop-filter:blur(10px);
             color:white;
@@ -1153,14 +1444,14 @@
             border-radius:999px;
         }
 
-        .legend-footer {
+        .legend-footer{
             display:flex;
             justify-content:space-between;
             align-items:center;
             margin-top:20px;
         }
 
-        .read-btn {
+        .read-btn{
             border:none;
             padding:12px 20px;
             border-radius:14px;
@@ -1170,11 +1461,11 @@
             background:linear-gradient(135deg, #A5D8FF, #6366f1);
         }
 
-        .read-btn:hover {
+        .read-btn:hover{
             transform:translateY(-2px);
         }
 
-        #fullTextSection {
+        #fullTextSection{
             display:none;
             margin-top:15px;
             padding:20px;
@@ -1184,18 +1475,18 @@
             animation:fadeIn .3s ease;
         }
 
-        @keyframes fadeIn {
-            from {
+        @keyframes fadeIn{
+            from{
                 opacity:0;
                 transform:translateY(10px);
             }
-            to {
+            to{
                 opacity:1;
                 transform:translateY(0);
             }
         }
 
-        .user-address {
+        .user-address{
             margin-top:10px;
             padding:12px;
             border-radius:10px;
@@ -1205,33 +1496,15 @@
             text-align:center;
         }
 
-        .admin-legend-item {
-            background:var(--color-secondary);
-            border-radius:22px;
-            padding:20px;
-            margin-bottom:16px;
-            border:1px solid rgba(0,0,0,.05);
-            transition:.3s;
-        }
-
-        .admin-legend-item:hover {
-            transform:translateY(-3px);
-            box-shadow:0 15px 30px rgba(0,0,0,.08);
-        }
-
-        .full-text-content {
-            margin-top:10px;
-            padding:16px;
-            border-left:4px solid var(--color-accent);
-            border-radius:12px;
-            background:rgba(0,0,0,.03);
-            line-height:1.8;
-        }
-
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
                 gap: 1rem;
+            }
+            nav ul {
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
             }
             .hero h1 {
                 font-size: 2.5rem;
@@ -1256,6 +1529,15 @@
             .user-stats {
                 flex-direction: column;
                 gap: 0.5rem;
+            }
+            .games-button-container {
+                bottom: 1rem;
+                right: 1rem;
+            }
+            .games-button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
             }
             .admin-modal-content {
                 width: 98%;
@@ -1284,6 +1566,22 @@
             .admin-table th,
             .admin-table td {
                 padding: 0.5rem;
+            }
+            .report-actions {
+                flex-direction: column;
+            }
+            .report-actions .btn {
+                flex: 1;
+                text-align: center;
+            }
+            .category-item {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            .category-actions {
+                width: 100%;
+                justify-content: flex-end;
             }
         }
     </style>
@@ -1321,6 +1619,49 @@
     </header>
 
     <main class="container">
+        <section class="add-legend-form" id="addLegendForm" style="display: none;">
+            <h2>Добавить новую легенду</h2>
+            <form id="newLegendForm">
+                <div class="form-group">
+                    <label for="legendTitle">Название легенды</label>
+                    <input type="text" id="legendTitle" placeholder="Введите название" required>
+                </div>
+                <div class="form-group">
+                    <label for="legendDescription">Описание</label>
+                    <textarea id="legendDescription" placeholder="Расскажите историю легенды" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="legendCategory">Категория</label>
+                    <select id="legendCategory" required>
+                        <option value="">Выберите категорию</option>
+                        <option value="Мистика">Мистика</option>
+                        <option value="История">История</option>
+                        <option value="Архитектура">Архитектура</option>
+                        <option value="Современность">Современность</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="legendImage">URL изображения</label>
+                    <input type="url" id="legendImage" placeholder="https://example.com/image.jpg" required>
+                </div>
+                <div class="form-group">
+                    <label>Местоположение (кликните на карте)</label>
+                    <div id="locationInfo" style="margin-top: 0.5rem; color: var(--color-text-light);">
+                        Координаты: <span id="selectedCoords">не выбраны</span>
+                    </div>
+                </div>
+                <div class="form-group" style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary">Отправить на модерацию</button>
+                    <button type="button" class="btn btn-outline" onclick="closeAddLegendForm()">Отмена</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="admin-panel" id="adminPanel" style="display: none;">
+            <h2>Панель модерации</h2>
+            <div id="pendingLegends"></div>
+        </section>
+
         <section class="hero">
             <h1>Откройте тайны города с</h1>
             <p2>UrbanLegends</p2>
@@ -1510,6 +1851,111 @@
         </div>
     </div>
 
+    <!-- Модальное окно редактирования профиля -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Редактирование профиля</h2>
+                <button class="close-modal" onclick="closeModal('profileModal')">&times;</button>
+            </div>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="editUsername">Имя пользователя</label>
+                    <input type="text" id="editUsername" placeholder="Введите имя пользователя" required>
+                </div>
+                <div class="form-group">
+                    <label for="editBio">О себе</label>
+                    <textarea id="editBio" placeholder="Расскажите о себе..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Аватар</label>
+                    <div class="upload-area" id="avatarUploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Перетащите изображение сюда или кликните для выбора</p>
+                        <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    </div>
+                    <div id="avatarPreview" style="margin-top: 1rem;"></div>
+                </div>
+                <div class="form-group" style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('profileModal')">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно игры Тетрис -->
+    <div class="modal tetris-modal" id="tetrisModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Тетрис Легенд</h2>
+                <button class="close-modal" onclick="closeModal('tetrisModal')">&times;</button>
+            </div>
+            <div class="tetris-container">
+                <div class="tetris-stats">
+                    <div class="tetris-stat">
+                        <div class="tetris-stat-value" id="score">0</div>
+                        <div class="tetris-stat-label">Очки</div>
+                    </div>
+                    <div class="tetris-stat">
+                        <div class="tetris-stat-value" id="level">1</div>
+                        <div class="tetris-stat-label">Уровень</div>
+                    </div>
+                    <div class="tetris-stat">
+                        <div class="tetris-stat-value" id="lines">0</div>
+                        <div class="tetris-stat-label">Линии</div>
+                    </div>
+                </div>
+                <div class="tetris-game">
+                    <div class="tetris-board" id="tetrisBoard"></div>
+                    <div class="tetris-sidebar">
+                        <div>
+                            <h4>Следующая:</h4>
+                            <div class="tetris-next" id="tetrisNext"></div>
+                        </div>
+                        <div class="tetris-controls">
+                            <div class="tetris-control-row">
+                                <button class="tetris-control-btn" onclick="moveTetromino('left')">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                            </div>
+                            <div class="tetris-control-row">
+                                <button class="tetris-control-btn" onclick="rotateTetromino()">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                                <button class="tetris-control-btn" onclick="moveTetromino('down')">
+                                    <i class="fas fa-arrow-down"></i>
+                                </button>
+                            </div>
+                            <div class="tetris-control-row">
+                                <button class="tetris-control-btn" onclick="moveTetromino('right')">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tetris-game-over" id="gameOver" style="display: none;">
+                    <h3>Игра окончена!</h3>
+                    <p>Ваш счет: <span id="finalScore">0</span></p>
+                    <button class="btn btn-primary" onclick="startTetris()">
+                        <i class="fas fa-redo"></i> Играть снова
+                    </button>
+                </div>
+                <div class="tetris-instructions">
+                    <h4>Управление:</h4>
+                    <ul>
+                        <li><i class="fas fa-arrow-left"></i> Влево</li>
+                        <li><i class="fas fa-arrow-right"></i> Вправо</li>
+                        <li><i class="fas fa-arrow-down"></i> Вниз</li>
+                        <li><i class="fas fa-redo"></i> Повернуть</li>
+                        <li>Пробел - Быстро вниз</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Модальное окно деталей легенды -->
     <div class="modal" id="legendModal">
         <div class="modal-content" style="max-width: 600px;">
@@ -1522,16 +1968,13 @@
                 <span id="modalLegendCategory"><i class="fas fa-ghost"></i> Мистика</span>
             </div>
             <p id="modalLegendDescription" style="margin-bottom: 1.5rem;"></p>
-            
             <div id="fullTextSection" style="display: none;">
                 <h4 style="margin-bottom: 1rem;">Полный текст</h4>
                 <p id="modalLegendFullText" style="line-height: 1.6; color: var(--color-text);"></p>
             </div>
-
             <button class="btn btn-outline" id="toggleFullTextBtn" style="width: 100%; margin: 1rem 0; display: none;">
                 <i class="fas fa-book"></i> Показать полный текст
             </button>
-            
             <div class="legend-actions">
                 <div class="rating">
                     <span>Рейтинг:</span>
@@ -1542,7 +1985,6 @@
                     <i class="fas fa-flag"></i> Пожаловаться
                 </button>
             </div>
-            
             <div class="comments-section">
                 <div class="comments-header">
                     <h3>Комментарии</h3>
@@ -1658,37 +2100,40 @@
         </div>
     </div>
 
-    <!-- Модальное окно редактирования профиля -->
-    <div class="modal" id="profileModal">
+    <!-- Модальное окно категорий -->
+    <div class="modal" id="categoryModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Редактирование профиля</h2>
-                <button class="close-modal" onclick="closeModal('profileModal')">&times;</button>
+                <h3 id="categoryModalTitle">Добавить категорию</h3>
+                <button class="close-modal" onclick="closeModal('categoryModal')">&times;</button>
             </div>
-            <form id="profileForm">
+            <form id="categoryForm">
+                <input type="hidden" id="categoryId">
                 <div class="form-group">
-                    <label for="editUsername">Имя пользователя</label>
-                    <input type="text" id="editUsername" placeholder="Введите имя пользователя" required>
+                    <label for="categoryName">Название категории</label>
+                    <input type="text" id="categoryName" required>
                 </div>
                 <div class="form-group">
-                    <label for="editBio">О себе</label>
-                    <textarea id="editBio" placeholder="Расскажите о себе..."></textarea>
+                    <label for="categoryDescription">Описание</label>
+                    <textarea id="categoryDescription" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Аватар</label>
-                    <div class="upload-area" id="avatarUploadArea">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <p>Перетащите изображение сюда или кликните для выбора</p>
-                        <input type="file" id="avatarInput" accept="image/*" style="display: none;">
-                    </div>
-                    <div id="avatarPreview" style="margin-top: 1rem;"></div>
+                    <label for="categoryIcon">Иконка (Font Awesome класс)</label>
+                    <input type="text" id="categoryIcon" placeholder="fas fa-tag" value="fas fa-tag">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%">Сохранить изменения</button>
+                <div class="form-group">
+                    <label for="categoryColor">Цвет</label>
+                    <input type="color" id="categoryColor" value="#6c757d">
+                </div>
+                <div class="form-group" style="display: flex; gap: 1rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('categoryModal')">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- Админ-панель -->
+    <!-- Админ-панель (модальное окно) -->
     <div class="modal" id="adminPanelModal">
         <div class="modal-content admin-modal-content">
             <div class="modal-header">
@@ -1908,6 +2353,7 @@
             const authButtons = document.getElementById('authButtons');
             const userMenuContainer = document.getElementById('userMenuContainer');
             const addLegendBtn = document.getElementById('addLegendBtn');
+            const adminPanel = document.getElementById('adminPanel');
             const adminPanelBtn = document.getElementById('adminPanelBtn');
             const userProfileSection = document.getElementById('userProfileSection');
             const heroAuthButtons = document.getElementById('heroAuthButtons');
@@ -1958,10 +2404,32 @@
                     </div>
                 `;
                 
+                const userThemeToggle = document.getElementById('userThemeToggle');
+                if (userThemeToggle) {
+                    userThemeToggle.replaceWith(userThemeToggle.cloneNode(true));
+                    document.getElementById('userThemeToggle').addEventListener('click', function() {
+                        const body = document.body;
+                        const isDark = body.getAttribute('data-theme') === 'dark';
+                        const icon = this.querySelector('i');
+                        
+                        if (isDark) {
+                            body.removeAttribute('data-theme');
+                            icon.className = 'fas fa-moon';
+                            document.getElementById('themeToggle').querySelector('i').className = 'fas fa-moon';
+                        } else {
+                            body.setAttribute('data-theme', 'dark');
+                            icon.className = 'fas fa-sun';
+                            document.getElementById('themeToggle').querySelector('i').className = 'fas fa-sun';
+                        }
+                    });
+                }
+                
                 if (currentUser.role === 'admin') {
+                    adminPanel.style.display = 'block';
                     adminPanelBtn.style.display = 'flex';
                     loadPendingLegends();
                 } else {
+                    adminPanel.style.display = 'none';
                     adminPanelBtn.style.display = 'none';
                 }
                 
@@ -1971,12 +2439,32 @@
                 authButtons.style.display = 'flex';
                 userMenuContainer.style.display = 'none';
                 addLegendBtn.style.display = 'none';
+                adminPanel.style.display = 'none';
                 adminPanelBtn.style.display = 'none';
                 userProfileSection.style.display = 'none';
                 
                 if (heroAuthButtons) {
                     heroAuthButtons.style.display = 'flex';
                 }
+            }
+        }
+
+        async function loadUserStats() {
+            if (!currentUser) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const user = data.user;
+                    document.getElementById('commentsCount').textContent = user.visitedLegends?.length || 0;
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке статистики:', error);
             }
         }
 
@@ -2088,7 +2576,7 @@
                 {
                     _id: '1',
                     title: "Призрак оперного театра",
-                    description: "Легенда о призраке известной оперной певицы, которая появляется в театре по ночам.",
+                    description: "Легенда о призраке известной оперной певицы, которая появляется в театре по ночам. Говорят, что её пение до сих пор можно услышать в пустом зале после полуночи.",
                     fullText: "Подробная история о призраке оперного театра...",
                     category: "Мистика",
                     image: "https://images.unsplash.com/photo-1541336032412-2048a678540d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
@@ -2109,7 +2597,7 @@
                 {
                     _id: '2',
                     title: "Затерянный тоннель метро",
-                    description: "Секретный тоннель, построенный в сталинские времена.",
+                    description: "Секретный тоннель, построенный в сталинские времена, который якобы соединяет несколько станций метро.",
                     fullText: "Подробная история о затерянном тоннеле...",
                     category: "История",
                     image: "https://images.unsplash.com/photo-1513628253939-010e64ac66cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
@@ -2501,6 +2989,10 @@
             closeUserMenu();
         }
 
+        function closeAddLegendForm() {
+            document.getElementById('addLegendForm').style.display = 'none';
+        }
+
         function openProfileModal() {
             if (!currentUser) return;
             
@@ -2517,6 +3009,11 @@
             
             openModal('profileModal');
             closeUserMenu();
+        }
+
+        function openTetris() {
+            openModal('tetrisModal');
+            startTetris();
         }
 
         function showReportModal(type, targetId) {
@@ -2613,31 +3110,17 @@
         }
 
         // ============================================
-        // ЗАГРУЗКА ПОЛЬЗОВАТЕЛЬСКИХ ДАННЫХ
+        // СИСТЕМА ДОСТИЖЕНИЙ
         // ============================================
-        async function loadUserStats() {
-            if (!currentUser) return;
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/profile', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    // Обновляем статистику
-                }
-            } catch (error) {
-                console.error('Ошибка при загрузке статистики:', error);
-            }
-        }
-
         async function loadUserAchievements() {
             if (!currentUser) return;
+            
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch('/api/achievements', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
                 if (response.ok) {
                     const achievements = await response.json();
                     renderAchievements(achievements);
@@ -2650,9 +3133,12 @@
         function renderAchievements(achievements) {
             const grid = document.getElementById('achievementsGrid');
             if (!grid) return;
+            
             grid.innerHTML = '';
+            
             achievements.forEach(achievement => {
                 const progressPercent = Math.min(100, (achievement.progress / achievement.requirement) * 100);
+                
                 const card = document.createElement('div');
                 card.className = `achievement-card ${achievement.unlocked ? 'unlocked' : 'locked'}`;
                 card.innerHTML = `
@@ -2872,6 +3358,39 @@
             } else {
                 const filteredLegends = legends.filter(legend => legend.category === category);
                 renderLegends(filteredLegends);
+            }
+        }
+
+        // ============================================
+        // ЖАЛОБЫ (КЛИЕНТСКАЯ ЧАСТЬ)
+        // ============================================
+        async function reportContent(type, targetId, reason, description) {
+            if (!currentUser) {
+                alert('Пожалуйста, войдите в систему');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/report', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ type, targetId, reason, description })
+                });
+
+                if (response.ok) {
+                    showNotification('Жалоба отправлена на рассмотрение');
+                    closeModal('reportModal');
+                } else {
+                    const data = await response.json();
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Ошибка при отправке жалобы:', error);
+                showNotification('Ошибка при отправке жалобы', 'error');
             }
         }
 
@@ -3176,6 +3695,9 @@
             }
         }
 
+        // ============================================
+        // ЗАГРУЗКА ЛЕГЕНД НА МОДЕРАЦИЮ
+        // ============================================
         async function loadPendingLegends() {
             try {
                 const token = localStorage.getItem('token');
@@ -3214,7 +3736,268 @@
         }
 
         // ============================================
-        // ОБРАБОТЧИКИ СОБЫТИЙ
+        // ИГРА ТЕТРИС
+        // ============================================
+        let tetrisBoard = [];
+        let currentTetromino = null;
+        let nextTetromino = null;
+        let score = 0;
+        let level = 1;
+        let lines = 0;
+        let isGameOver = false;
+
+        const TETROMINOES = {
+            I: { shape: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: 'I' },
+            O: { shape: [[1,1],[1,1]], color: 'O' },
+            T: { shape: [[0,1,0],[1,1,1],[0,0,0]], color: 'T' },
+            S: { shape: [[0,1,1],[1,1,0],[0,0,0]], color: 'S' },
+            Z: { shape: [[1,1,0],[0,1,1],[0,0,0]], color: 'Z' },
+            J: { shape: [[1,0,0],[1,1,1],[0,0,0]], color: 'J' },
+            L: { shape: [[0,0,1],[1,1,1],[0,0,0]], color: 'L' }
+        };
+
+        function startTetris() {
+            tetrisBoard = Array(20).fill().map(() => Array(10).fill(0));
+            score = 0; level = 1; lines = 0; isGameOver = false;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('lines').textContent = lines;
+            document.getElementById('gameOver').style.display = 'none';
+            
+            createNewTetromino();
+            renderTetrisBoard();
+            renderNextTetromino();
+            
+            if (window.gameInterval) clearInterval(window.gameInterval);
+            window.gameInterval = setInterval(gameLoop, 1000 - (level - 1) * 100);
+            
+            window.handleKeyPress = handleKeyPress;
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        function createNewTetromino() {
+            const types = Object.keys(TETROMINOES);
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            if (!nextTetromino) {
+                nextTetromino = type;
+                const nextTypes = types.filter(t => t !== type);
+                currentTetromino = {
+                    type: nextTypes[Math.floor(Math.random() * nextTypes.length)],
+                    shape: TETROMINOES[nextTypes[Math.floor(Math.random() * nextTypes.length)]].shape,
+                    x: 3, y: 0
+                };
+            } else {
+                currentTetromino = {
+                    type: nextTetromino,
+                    shape: TETROMINOES[nextTetromino].shape,
+                    x: 3, y: 0
+                };
+                const nextTypes = types.filter(t => t !== nextTetromino);
+                nextTetromino = nextTypes[Math.floor(Math.random() * nextTypes.length)];
+            }
+            
+            if (checkCollision()) gameOver();
+        }
+
+        function gameLoop() {
+            if (isGameOver) return;
+            moveTetromino('down');
+        }
+
+        function moveTetromino(direction) {
+            if (isGameOver) return;
+            
+            const newX = direction === 'left' ? currentTetromino.x - 1 : 
+                        direction === 'right' ? currentTetromino.x + 1 : currentTetromino.x;
+            const newY = direction === 'down' ? currentTetromino.y + 1 : currentTetromino.y;
+            
+            if (!checkCollision(newX, newY)) {
+                currentTetromino.x = newX;
+                currentTetromino.y = newY;
+                renderTetrisBoard();
+            } else if (direction === 'down') {
+                lockTetromino();
+                clearLines();
+                createNewTetromino();
+                renderNextTetromino();
+            }
+        }
+
+        function rotateTetromino() {
+            if (isGameOver) return;
+            
+            const rotated = currentTetromino.shape[0].map((_, i) =>
+                currentTetromino.shape.map(row => row[i]).reverse()
+            );
+            
+            const oldShape = currentTetromino.shape;
+            currentTetromino.shape = rotated;
+            
+            if (checkCollision()) {
+                currentTetromino.shape = oldShape;
+            } else {
+                renderTetrisBoard();
+            }
+        }
+
+        function checkCollision(x = currentTetromino.x, y = currentTetromino.y, shape = currentTetromino.shape) {
+            for (let row = 0; row < shape.length; row++) {
+                for (let col = 0; col < shape[row].length; col++) {
+                    if (shape[row][col] !== 0) {
+                        const newX = x + col;
+                        const newY = y + row;
+                        
+                        if (newX < 0 || newX >= 10 || newY >= 20 || 
+                            (newY >= 0 && tetrisBoard[newY][newX] !== 0)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function lockTetromino() {
+            for (let row = 0; row < currentTetromino.shape.length; row++) {
+                for (let col = 0; col < currentTetromino.shape[row].length; col++) {
+                    if (currentTetromino.shape[row][col] !== 0) {
+                        const boardY = currentTetromino.y + row;
+                        const boardX = currentTetromino.x + col;
+                        
+                        if (boardY >= 0) {
+                            tetrisBoard[boardY][boardX] = currentTetromino.type;
+                        }
+                    }
+                }
+            }
+        }
+
+        function clearLines() {
+            let linesCleared = 0;
+            
+            for (let row = 19; row >= 0; row--) {
+                if (tetrisBoard[row].every(cell => cell !== 0)) {
+                    tetrisBoard.splice(row, 1);
+                    tetrisBoard.unshift(Array(10).fill(0));
+                    linesCleared++;
+                    row++;
+                }
+            }
+            
+            if (linesCleared > 0) {
+                lines += linesCleared;
+                score += linesCleared * 100 * level;
+                level = Math.floor(lines / 10) + 1;
+                
+                document.getElementById('score').textContent = score;
+                document.getElementById('level').textContent = level;
+                document.getElementById('lines').textContent = lines;
+                
+                clearInterval(window.gameInterval);
+                window.gameInterval = setInterval(gameLoop, Math.max(100, 1000 - (level - 1) * 100));
+            }
+        }
+
+        function renderTetrisBoard() {
+            const board = document.getElementById('tetrisBoard');
+            board.innerHTML = '';
+            
+            const tempBoard = JSON.parse(JSON.stringify(tetrisBoard));
+            
+            if (currentTetromino) {
+                for (let row = 0; row < currentTetromino.shape.length; row++) {
+                    for (let col = 0; col < currentTetromino.shape[row].length; col++) {
+                        if (currentTetromino.shape[row][col] !== 0) {
+                            const boardY = currentTetromino.y + row;
+                            const boardX = currentTetromino.x + col;
+                            
+                            if (boardY >= 0 && boardY < 20 && boardX >= 0 && boardX < 10) {
+                                tempBoard[boardY][boardX] = currentTetromino.type;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            for (let row = 0; row < 20; row++) {
+                for (let col = 0; col < 10; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'tetris-cell';
+                    
+                    if (tempBoard[row][col] !== 0) {
+                        cell.classList.add('filled', tempBoard[row][col]);
+                    }
+                    
+                    board.appendChild(cell);
+                }
+            }
+            
+            board.style.display = 'grid';
+            board.style.gridTemplateColumns = 'repeat(10, 25px)';
+            board.style.gridTemplateRows = 'repeat(20, 25px)';
+        }
+
+        function renderNextTetromino() {
+            const nextBoard = document.getElementById('tetrisNext');
+            nextBoard.innerHTML = '';
+            
+            if (!nextTetromino) return;
+            
+            const shape = TETROMINOES[nextTetromino].shape;
+            
+            for (let row = 0; row < shape.length; row++) {
+                for (let col = 0; col < shape[row].length; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'tetris-cell';
+                    
+                    if (shape[row][col] !== 0) {
+                        cell.classList.add('filled', nextTetromino);
+                    }
+                    
+                    nextBoard.appendChild(cell);
+                }
+            }
+            
+            nextBoard.style.display = 'grid';
+            nextBoard.style.gridTemplateColumns = `repeat(${shape[0].length}, 20px)`;
+            nextBoard.style.gridTemplateRows = `repeat(${shape.length}, 20px)`;
+            nextBoard.style.justifyContent = 'center';
+        }
+
+        function handleKeyPress(event) {
+            if (isGameOver) return;
+            
+            switch(event.code) {
+                case 'ArrowLeft': moveTetromino('left'); break;
+                case 'ArrowRight': moveTetromino('right'); break;
+                case 'ArrowDown': moveTetromino('down'); break;
+                case 'ArrowUp': rotateTetromino(); break;
+                case 'Space':
+                    while (!checkCollision(currentTetromino.x, currentTetromino.y + 1)) {
+                        currentTetromino.y++;
+                    }
+                    lockTetromino();
+                    clearLines();
+                    createNewTetromino();
+                    renderNextTetromino();
+                    renderTetrisBoard();
+                    break;
+            }
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            clearInterval(window.gameInterval);
+            document.removeEventListener('keydown', window.handleKeyPress);
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        // ============================================
+        // ИНИЦИАЛИЗАЦИЯ
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
@@ -3362,9 +4145,20 @@
             // Профиль
             document.getElementById('profileForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                // Сохранение профиля
                 showNotification('Профиль обновлен!');
                 closeModal('profileModal');
+            });
+
+            // Категории
+            document.getElementById('categoryForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const categoryData = {
+                    name: document.getElementById('categoryName').value,
+                    description: document.getElementById('categoryDescription').value,
+                    icon: document.getElementById('categoryIcon').value,
+                    color: document.getElementById('categoryColor').value
+                };
+                createCategory(categoryData);
             });
 
             // Аватар
@@ -3432,41 +4226,116 @@
                 document.querySelectorAll('.modal').forEach(modal => {
                     if (e.target === modal) {
                         modal.style.display = 'none';
+                        if (modal.id === 'tetrisModal') {
+                            clearInterval(window.gameInterval);
+                            document.removeEventListener('keydown', window.handleKeyPress);
+                        }
                     }
                 });
             });
         });
 
-        // ============================================
-        // ЖАЛОБЫ (КЛИЕНТСКАЯ ЧАСТЬ)
-        // ============================================
-        async function reportContent(type, targetId, reason, description) {
-            if (!currentUser) {
-                alert('Пожалуйста, войдите в систему');
-                return;
-            }
-
+        // Функция для создания категории
+        async function createCategory(categoryData) {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('/api/report', {
+                const response = await fetch('/api/admin/categories', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ type, targetId, reason, description })
+                    body: JSON.stringify(categoryData)
                 });
-
+                
+                const data = await response.json();
+                
                 if (response.ok) {
-                    showNotification('Жалоба отправлена на рассмотрение');
-                    closeModal('reportModal');
+                    showNotification('Категория успешно создана');
+                    closeModal('categoryModal');
+                    loadCategories();
                 } else {
-                    const data = await response.json();
                     alert(data.message);
                 }
             } catch (error) {
-                console.error('Ошибка при отправке жалобы:', error);
-                showNotification('Ошибка при отправке жалобы', 'error');
+                console.error('Ошибка при создании категории:', error);
+                showNotification('Ошибка при создании категории', 'error');
+            }
+        }
+
+        // Функция для загрузки категорий
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                if (response.ok) {
+                    const categories = await response.json();
+                    renderCategories(categories);
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке категорий:', error);
+            }
+        }
+
+        function renderCategories(categories) {
+            const container = document.getElementById('adminCategoriesList');
+            if (!container) return;
+            
+            container.innerHTML = categories.map(category => `
+                <div class="category-item" data-category-id="${category._id}">
+                    <div class="category-info">
+                        <div class="category-icon" style="background-color: ${category.color}">
+                            <i class="${category.icon}"></i>
+                        </div>
+                        <div>
+                            <h4>${category.name}</h4>
+                            <p style="color: var(--color-text-light); margin: 0; font-size: 0.9rem;">
+                                ${category.description || 'Описание отсутствует'}
+                            </p>
+                            <small style="color: var(--color-text-light);">
+                                Легенд: ${category.legendCount || 0}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="category-actions">
+                        <button class="btn btn-outline" onclick="editCategory('${category._id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteCategory('${category._id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openCategoryModal() {
+            document.getElementById('categoryForm').reset();
+            document.getElementById('categoryModalTitle').textContent = 'Добавить категорию';
+            document.getElementById('categoryId').value = '';
+            openModal('categoryModal');
+        }
+
+        function editCategory(categoryId) {
+            // Заглушка
+            alert('Редактирование категории');
+        }
+
+        async function deleteCategory(categoryId) {
+            if (!confirm('Вы уверены, что хотите удалить эту категорию?')) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/admin/categories/${categoryId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    showNotification('Категория удалена');
+                    loadCategories();
+                }
+            } catch (error) {
+                console.error('Ошибка при удалении категории:', error);
             }
         }
     </script>
