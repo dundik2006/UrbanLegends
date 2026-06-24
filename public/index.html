@@ -3136,7 +3136,7 @@ async function loadAddress(lat, lng) {
         }
 
         // Функции для комментариев
-      async function loadComments(legendId) {
+     async function loadComments(legendId) {
     try {
         const response = await fetch(`/api/legends/${legendId}/comments`);
         
@@ -3145,21 +3145,25 @@ async function loadAddress(lat, lng) {
             renderComments(comments);
             return comments;
         } else {
-            console.error('Ошибка при загрузке комментариев');
+            console.error('Ошибка при загрузке комментариев, статус:', response.status);
+            // Используем локальные данные
             const legend = legends.find(l => l._id == legendId);
-            if (legend) {
-                renderComments(legend.comments || []);
-                return legend.comments || [];
+            if (legend && legend.comments) {
+                renderComments(legend.comments);
+                return legend.comments;
             }
+            renderComments([]);
             return [];
         }
     } catch (error) {
         console.error('Ошибка при загрузке комментариев:', error);
+        // Используем локальные данные
         const legend = legends.find(l => l._id == legendId);
-        if (legend) {
-            renderComments(legend.comments || []);
-            return legend.comments || [];
+        if (legend && legend.comments) {
+            renderComments(legend.comments);
+            return legend.comments;
         }
+        renderComments([]);
         return [];
     }
 }
@@ -3183,22 +3187,17 @@ async function addComment(legendId, text) {
 
         if (response.ok) {
             const data = await response.json();
-            // Исправлено: передаем правильные комментарии
+            // Обновляем комментарии
             renderComments(data.comments || []);
             document.querySelector('#commentForm .comment-input').value = '';
-            
-            // Обновляем счетчик комментариев
-            const commentsCount = data.comments?.length || 0;
-            document.getElementById('commentsCount').textContent = `${commentsCount} ${getCommentWord(commentsCount)}`;
-            
             showNotification('Комментарий добавлен!');
         } else {
             const data = await response.json();
-            alert(data.message);
+            alert(data.message || 'Ошибка при добавлении комментария');
         }
     } catch (error) {
         console.error('Ошибка при добавлении комментария:', error);
-        // Демо-режим
+        // Демо-режим - добавляем локально
         const legend = legends.find(l => l._id == legendId);
         if (legend) {
             if (!legend.comments) legend.comments = [];
@@ -3212,14 +3211,12 @@ async function addComment(legendId, text) {
             legend.comments.unshift(newComment);
             renderComments(legend.comments);
             document.querySelector('#commentForm .comment-input').value = '';
-            
-            // Обновляем счетчик
-            document.getElementById('commentsCount').textContent = `${legend.comments.length} ${getCommentWord(legend.comments.length)}`;
+            showNotification('Комментарий добавлен! (демо-режим)');
         }
     }
 }
 
- function renderComments(comments) {
+function renderComments(comments) {
     const commentsList = document.getElementById('commentsList');
     const commentsCount = document.getElementById('commentsCount');
     
@@ -3231,16 +3228,30 @@ async function addComment(legendId, text) {
         return;
     }
     
-    commentsCount.textContent = `${comments.length} ${getCommentWord(comments.length)}`;
+    // Обновляем счетчик
+    const count = comments.length;
+    commentsCount.textContent = `${count} ${getCommentWord(count)}`;
     
+    // Сортируем по дате (новые сверху)
     const sortedComments = [...comments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
     sortedComments.forEach(comment => {
         const commentEl = document.createElement('div');
         commentEl.className = 'comment';
+        
+        // Получаем имя автора
+        let authorName = 'Пользователь';
+        if (comment.authorName) {
+            authorName = comment.authorName;
+        } else if (comment.author && typeof comment.author === 'object') {
+            authorName = comment.author.username || 'Пользователь';
+        } else if (typeof comment.author === 'string') {
+            authorName = comment.author;
+        }
+        
         commentEl.innerHTML = `
             <div class="comment-header">
-                <span class="comment-author">${comment.authorName || comment.author?.username || 'Пользователь'}</span>
+                <span class="comment-author">${authorName}</span>
                 <span class="comment-date">${formatDate(comment.createdAt)}</span>
                 ${currentUser && (currentUser.id === comment.author?._id || currentUser.id === comment.author || currentUser.role === 'admin') ? `
                     <button class="delete-comment-btn" onclick="deleteComment('${comment._id}')">
@@ -3251,7 +3262,7 @@ async function addComment(legendId, text) {
                     <i class="fas fa-flag"></i>
                 </button>
             </div>
-            <p class="comment-text">${comment.text}</p>
+            <p class="comment-text">${comment.text || ''}</p>
         `;
         commentsList.appendChild(commentEl);
     });
@@ -3509,17 +3520,26 @@ function openModerationModal(legend){
     openModal('moderationModal');
 }
 function openLegendModal(id) {
+    console.log('Открываем легенду с ID:', id);
+    console.log('Все легенды:', legends);
+    
     const legend = legends.find(l => l._id == id);
-    if (!legend) return;
+    console.log('Найденная легенда:', legend);
+    
+    if (!legend) {
+        console.error('Легенда не найдена!');
+        alert('Легенда не найдена');
+        return;
+    }
     
     currentLegendId = id;
     
-    // Исправлено: используем legend.title вместо hardcoded значения
-    document.getElementById('modalLegendTitle').textContent = legend.title;
+    // Устанавливаем название из данных легенды
+    document.getElementById('modalLegendTitle').textContent = legend.title || 'Без названия';
     document.getElementById('modalLegendImage').src = legend.image || legend.images?.[0] || '';
-    document.getElementById('modalLegendImage').alt = legend.title;
-    document.getElementById('modalLegendCategory').innerHTML = `<i class="fas fa-${getCategoryIcon(legend.category)}"></i> ${legend.category}`;
-    document.getElementById('modalLegendDescription').textContent = legend.description;
+    document.getElementById('modalLegendImage').alt = legend.title || 'Легенда';
+    document.getElementById('modalLegendCategory').innerHTML = `<i class="fas fa-${getCategoryIcon(legend.category)}"></i> ${legend.category || 'Без категории'}`;
+    document.getElementById('modalLegendDescription').textContent = legend.description || 'Описание отсутствует';
     
     // Полный текст
     const fullText = legend.fullText?.trim() || legend.description?.trim() || 'Полный текст отсутствует';
@@ -3536,9 +3556,12 @@ function openLegendModal(id) {
         document.getElementById('toggleFullTextBtn').style.display = 'none';
     }
     
-    document.getElementById('modalRatingValue').textContent = (legend.rating || 0).toFixed(1);
-    document.getElementById('modalStars').innerHTML = renderInteractiveStars(legend.rating || 0, id);
+    // Рейтинг
+    const rating = legend.rating || 0;
+    document.getElementById('modalRatingValue').textContent = rating.toFixed(1);
+    document.getElementById('modalStars').innerHTML = renderInteractiveStars(rating, id);
     
+    // Загружаем комментарии
     loadComments(id);
     
     openModal('legendModal');
@@ -4627,14 +4650,22 @@ document.getElementById('modalLegendForm').addEventListener('submit', async func
     }
 });
             
-            document.getElementById('commentForm').addEventListener('submit', function(e) {
+       document.getElementById('commentForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    const input = document.querySelector('#commentForm .comment-input');
+    const input = this.querySelector('.comment-input');
     const text = input.value.trim();
     
-    if (text && currentLegendId) {
-        addComment(currentLegendId, text);
+    if (!text) {
+        alert('Введите текст комментария');
+        return;
     }
+    
+    if (!currentLegendId) {
+        alert('Ошибка: легенда не выбрана');
+        return;
+    }
+    
+    addComment(currentLegendId, text);
 });
             
             document.getElementById('reportForm').addEventListener('submit', function(e) {
@@ -5033,6 +5064,16 @@ if (avatarUploadArea && avatarInput) {
         }
     });
 }
+        // Добавьте это в DOMContentLoaded
+document.getElementById('toggleFullTextBtn').addEventListener('click', function() {
+    const section = document.getElementById('fullTextSection');
+    const isOpen = section.style.display === 'block';
+    
+    section.style.display = isOpen ? 'none' : 'block';
+    this.innerHTML = isOpen 
+        ? '<i class="fas fa-book"></i> Показать полный текст'
+        : '<i class="fas fa-chevron-up"></i> Скрыть полный текст';
+});
     </script>
 </body>
 </html>
