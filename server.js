@@ -8,18 +8,17 @@ const multer = require('multer');
 const sharp = require('sharp');
 const nodemailer = require('nodemailer');
 const { getDistance } = require('geolib');
-const Grid = require('gridfs-stream');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+const JWT_SECRET = 'your_jwt_secret_key';
 
 // Настройка почтового транспорта
 const transport = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || 'your-email@gmail.com',
-    pass: process.env.EMAIL_PASS || 'your-app-password'
+    user: 'your-email@gmail.com',
+    pass: 'your-app-password'
   }
 });
 
@@ -27,32 +26,15 @@ const transport = nodemailer.createTransport({
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Подключение к MongoDB
-const mongoURI = process.env.MONGODB_URI;
-if (!mongoURI) {
-  console.error('ОШИБКА: MONGODB_URI не задана!');
-  process.exit(1);
-}
-
-mongoose.connect(mongoURI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// Настройка GridFS
-const conn = mongoose.connection;
-let gfs;
-conn.once('open', () => {
-  gfs = Grid(conn.db, mongoose.mongo);
-  gfs.collection('uploads');
-  console.log('GridFS initialized');
-});
-
-// Настройка multer для загрузки файлов (в память)
+// Настройка multer для загрузки файлов
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB
+  },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -62,7 +44,13 @@ const upload = multer({
   }
 });
 
-// Схемы Mongoose
+// Подключение к MongoDB
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+// Обновленные схемы Mongoose
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
@@ -108,7 +96,7 @@ const categorySchema = new mongoose.Schema({
 const legendSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  fullText: { type: String },
+  fullText: { type: String }, // Добавлено поле для полного текста
   category: { type: String, required: true },
   images: [{ type: String }],
   location: {
@@ -153,15 +141,15 @@ const achievementSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   icon: { type: String, required: true },
-  type: { type: String, required: true },
+  type: { type: String, required: true }, // 'legend', 'comment', 'like', 'visit', 'level'
   requirement: { type: Number, required: true },
   points: { type: Number, default: 10 },
-  rarity: { type: String, default: 'common' },
+  rarity: { type: String, default: 'common' }, // common, rare, epic, legendary
   category: { type: String }
 });
 
 const reportSchema = new mongoose.Schema({
-  type: { type: String, required: true },
+  type: { type: String, required: true }, // 'legend', 'comment'
   targetId: { type: mongoose.Schema.Types.ObjectId, required: true },
   reporter: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   reason: { type: String, required: true },
@@ -175,7 +163,7 @@ const reportSchema = new mongoose.Schema({
 
 const activitySchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, required: true },
+  type: { type: String, required: true }, // 'legend_created', 'comment_added', 'achievement_unlocked', etc.
   data: { type: mongoose.Schema.Types.Mixed },
   createdAt: { type: Date, default: Date.now }
 });
@@ -241,8 +229,10 @@ const checkAndAwardAchievements = async (userId, type, count) => {
             unlockedAt: new Date()
           });
           
+          // Добавляем опыт
           user.experience += achievement.points;
           
+          // Проверяем повышение уровня (каждые 100 опыта = 1 уровень)
           const newLevel = Math.floor(user.experience / 100) + 1;
           if (newLevel > user.level) {
             user.level = newLevel;
@@ -250,6 +240,7 @@ const checkAndAwardAchievements = async (userId, type, count) => {
           
           await user.save();
           
+          // Записываем активность
           await Activity.create({
             user: userId,
             type: 'achievement_unlocked',
@@ -267,7 +258,7 @@ const checkAndAwardAchievements = async (userId, type, count) => {
   }
 };
 
-// ========== РОУТЫ ДЛЯ АУТЕНТИФИКАЦИИ ==========
+// Роуты для аутентификации
 app.post('/api/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -326,6 +317,7 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ message: 'Неверный email или пароль' });
     }
 
+    // Обновляем время последней активности
     user.lastActive = new Date();
     await user.save();
 
@@ -354,6 +346,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Восстановление пароля
 app.post('/api/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -365,7 +358,7 @@ app.post('/api/forgot-password', async (req, res) => {
 
     const resetToken = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 час
     
     await user.save();
 
@@ -417,6 +410,7 @@ app.post('/api/reset-password', async (req, res) => {
   }
 });
 
+// Верификация email
 app.get('/api/verify-email', async (req, res) => {
   try {
     const { token } = req.query;
@@ -437,7 +431,7 @@ app.get('/api/verify-email', async (req, res) => {
   }
 });
 
-// ========== РОУТЫ ДЛЯ ПРОФИЛЯ ==========
+// Роуты для профиля
 app.get('/api/profile', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
@@ -496,34 +490,31 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
   }
 });
 
-// ========== ЗАГРУЗКА АВАТАРА (В GRIDFS) ==========
+// Загрузка аватара
+// В server.js добавьте этот маршрут для загрузки аватаров
 app.post('/api/upload-avatar', authenticateToken, upload.single('avatar'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'Файл не загружен' });
     }
 
-    if (!gfs) {
-      return res.status(500).json({ message: 'GridFS не инициализирован' });
-    }
+    // Создаем папку uploads если её нет
+    const uploadsDir = path.join(__dirname, 'uploads', 'avatars');
+    require('fs').mkdirSync(uploadsDir, { recursive: true });
 
-    // Сохраняем файл в GridFS
-    const writestream = gfs.createWriteStream({
-      filename: req.file.originalname,
-      content_type: req.file.mimetype,
-      metadata: { userId: req.user.id }
-    });
+    // Обработка изображения
+    const processedImage = await sharp(req.file.buffer)
+      .resize(200, 200)
+      .jpeg({ quality: 80 })
+      .toBuffer();
 
-    writestream.write(req.file.buffer);
-    writestream.end();
+    const filename = `avatar-${req.user.id}-${Date.now()}.jpg`;
+    const filepath = path.join(uploadsDir, filename);
 
-    const fileId = await new Promise((resolve, reject) => {
-      writestream.on('finish', () => resolve(writestream.id));
-      writestream.on('error', reject);
-    });
+    require('fs').writeFileSync(filepath, processedImage);
 
     const user = await User.findById(req.user.id);
-    user.avatar = `/api/file/${fileId}`;
+    user.avatar = `/uploads/avatars/${filename}`;
     await user.save();
 
     res.json({ 
@@ -536,30 +527,7 @@ app.post('/api/upload-avatar', authenticateToken, upload.single('avatar'), async
   }
 });
 
-// ========== ПОЛУЧЕНИЕ ФАЙЛОВ ИЗ GRIDFS ==========
-app.get('/api/file/:id', async (req, res) => {
-  try {
-    if (!gfs) {
-      return res.status(500).json({ message: 'GridFS не инициализирован' });
-    }
-
-    const fileId = new mongoose.Types.ObjectId(req.params.id);
-    
-    const file = await gfs.files.findOne({ _id: fileId });
-    if (!file) {
-      return res.status(404).json({ message: 'Файл не найден' });
-    }
-
-    const readstream = gfs.createReadStream({ _id: fileId });
-    res.set('Content-Type', file.contentType);
-    readstream.pipe(res);
-  } catch (error) {
-    console.error('Ошибка при получении файла:', error);
-    res.status(500).json({ message: 'Ошибка сервера' });
-  }
-});
-
-// ========== РОУТЫ ДЛЯ ЛЕГЕНД ==========
+// Расширенные роуты для легенд с поиском и фильтрацией
 app.get('/api/legends', async (req, res) => {
   try {
     const { 
@@ -581,6 +549,7 @@ app.get('/api/legends', async (req, res) => {
     if (category && category !== 'all') filter.category = category;
     if (minRating) filter.rating = { $gte: parseFloat(minRating) };
     
+    // Поиск по тексту
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -601,13 +570,14 @@ app.get('/api/legends', async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
     
+    // Фильтрация по расстоянию
     if (userLat && userLng && maxDistance) {
       legends = legends.filter(legend => {
         const distance = getDistance(
           { latitude: parseFloat(userLat), longitude: parseFloat(userLng) },
           { latitude: legend.location.lat, longitude: legend.location.lng }
         );
-        return distance <= parseFloat(maxDistance) * 1000;
+        return distance <= parseFloat(maxDistance) * 1000; // км в метры
       });
     }
     
@@ -628,6 +598,7 @@ app.get('/api/legends', async (req, res) => {
   }
 });
 
+// Автодополнение для поиска
 app.get('/api/legends/search/suggestions', async (req, res) => {
   try {
     const { q } = req.query;
@@ -653,6 +624,96 @@ app.get('/api/legends/search/suggestions', async (req, res) => {
   }
 });
 
+// Добавьте после функции setupAvatarUpload
+function setupLegendImagesUpload() {
+    const uploadArea = document.getElementById('legendImagesUploadArea');
+    const fileInput = document.getElementById('modalLegendImages');
+    
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleLegendImagesUpload(files);
+        }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleLegendImagesUpload(e.target.files);
+        }
+    });
+}
+
+let legendImages = [];
+
+function handleLegendImagesUpload(files) {
+    const previewContainer = document.getElementById('legendImagesPreview');
+    
+    for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+            alert('Пожалуйста, выбирайте только изображения');
+            continue;
+        }
+        
+        if (legendImages.length >= 5) {
+            alert('Максимум 5 изображений');
+            break;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageData = {
+                file: file,
+                preview: e.target.result
+            };
+            legendImages.push(imageData);
+            renderLegendImagesPreview();
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function renderLegendImagesPreview() {
+    const previewContainer = document.getElementById('legendImagesPreview');
+    previewContainer.innerHTML = '';
+    
+    legendImages.forEach((imageData, index) => {
+        const preview = document.createElement('div');
+        preview.className = 'image-preview';
+        preview.innerHTML = `
+            <img src="${imageData.preview}" alt="Preview">
+            <button type="button" class="remove-image" onclick="removeLegendImage(${index})">&times;</button>
+        `;
+        previewContainer.appendChild(preview);
+    });
+}
+
+function removeLegendImage(index) {
+    legendImages.splice(index, 1);
+    renderLegendImagesPreview();
+}
+
+function clearLegendImages() {
+    legendImages = [];
+    document.getElementById('legendImagesPreview').innerHTML = '';
+    document.getElementById('modalLegendImages').value = '';
+}
+    
+
+// Получение конкретной легенды
 app.get('/api/legends/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -665,6 +726,7 @@ app.get('/api/legends/:id', async (req, res) => {
       return res.status(404).json({ message: 'Легенда не найдена' });
     }
 
+    // Увеличиваем счетчик просмотров
     legend.viewCount += 1;
     await legend.save();
 
@@ -674,35 +736,28 @@ app.get('/api/legends/:id', async (req, res) => {
     res.status(500).json({ message: 'Ошибка сервера', error: error.message });
   }
 });
-
-// ========== СОЗДАНИЕ ЛЕГЕНДЫ (С ХРАНЕНИЕМ ФОТО В GRIDFS) ==========
+// Создание новой легенды
 app.post('/api/legends', authenticateToken, upload.array('images', 5), async (req, res) => {
   try {
     const { title, description, fullText, category, lat, lng, address, tags } = req.body;
     
     const imageUrls = [];
     
+    // Обработка загруженных изображений
     if (req.files && req.files.length > 0) {
-      if (!gfs) {
-        return res.status(500).json({ message: 'GridFS не инициализирован' });
-      }
-
       for (const file of req.files) {
-        const writestream = gfs.createWriteStream({
-          filename: file.originalname,
-          content_type: file.mimetype,
-          metadata: { userId: req.user.id }
-        });
+        const processedImage = await sharp(file.buffer)
+          .resize(800, 600)
+          .jpeg({ quality: 85 })
+          .toBuffer();
 
-        writestream.write(file.buffer);
-        writestream.end();
+        const filename = `legend-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+        const filepath = path.join(__dirname, 'uploads', 'legends', filename);
 
-        const fileId = await new Promise((resolve, reject) => {
-          writestream.on('finish', () => resolve(writestream.id));
-          writestream.on('error', reject);
-        });
+        require('fs').mkdirSync(path.dirname(filepath), { recursive: true });
+        require('fs').writeFileSync(filepath, processedImage);
 
-        imageUrls.push(`/api/file/${fileId}`);
+        imageUrls.push(`/uploads/legends/${filename}`);
       }
     }
     
@@ -721,15 +776,18 @@ app.post('/api/legends', authenticateToken, upload.array('images', 5), async (re
     
     await legend.save();
     
+    // ОБНОВЛЕНИЕ СЧЕТЧИКА КАТЕГОРИИ - ДОБАВЬТЕ ЭТОТ КОД:
     await Category.findOneAndUpdate(
       { name: category },
       { $inc: { legendCount: 1 } },
-      { upsert: true }
+      { upsert: true } // создаст категорию, если её нет
     );
     
+    // Проверяем достижения
     const userLegendsCount = await Legend.countDocuments({ createdBy: req.user.id, status: 'approved' });
     await checkAndAwardAchievements(req.user.id, 'legend', userLegendsCount);
     
+    // Записываем активность
     await Activity.create({
       user: req.user.id,
       type: 'legend_created',
@@ -749,7 +807,7 @@ app.post('/api/legends', authenticateToken, upload.array('images', 5), async (re
   }
 });
 
-// ========== ЛАЙКИ, РЕЙТИНГИ, КОММЕНТАРИИ ==========
+// Лайк/дизлайк легенды
 app.post('/api/legends/:id/like', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -766,8 +824,9 @@ app.post('/api/legends/:id/like', authenticateToken, async (req, res) => {
       legend.likes.push(req.user.id);
       liked = true;
       
+      // Проверяем достижения для лайков
       const userLikesCount = await Legend.aggregate([
-        { $match: { likes: new mongoose.Types.ObjectId(req.user.id) } },
+        { $match: { likes: mongoose.Types.ObjectId(req.user.id) } },
         { $count: 'count' }
       ]);
       
@@ -790,6 +849,7 @@ app.post('/api/legends/:id/like', authenticateToken, async (req, res) => {
   }
 });
 
+// Рейтинг легенды
 app.post('/api/legends/:id/rate', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -800,13 +860,16 @@ app.post('/api/legends/:id/rate', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Легенда не найдена' });
     }
 
+    // Удаляем старый рейтинг пользователя
     legend.ratings = legend.ratings.filter(r => r.user.toString() !== req.user.id);
     
+    // Добавляем новый рейтинг
     legend.ratings.push({
       user: req.user.id,
       rating: parseInt(rating)
     });
 
+    // Пересчитываем средний рейтинг
     const totalRating = legend.ratings.reduce((sum, r) => sum + r.rating, 0);
     legend.rating = totalRating / legend.ratings.length;
 
@@ -823,6 +886,7 @@ app.post('/api/legends/:id/rate', authenticateToken, async (req, res) => {
   }
 });
 
+// Получение комментариев для легенды
 app.get('/api/legends/:id/comments', async (req, res) => {
   try {
     const { id } = req.params;
@@ -839,6 +903,8 @@ app.get('/api/legends/:id/comments', async (req, res) => {
   }
 });
 
+// Добавление комментария
+// Добавление комментария
 app.post('/api/legends/:id/comments', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -868,9 +934,11 @@ app.post('/api/legends/:id/comments', authenticateToken, async (req, res) => {
     legend.comments.push(newComment);
     await legend.save();
 
+    // Получаем обновленную легенду с комментариями
     const updatedLegend = await Legend.findById(id)
       .populate('comments.author', 'username avatar');
 
+    // Проверяем достижения для комментариев (исправленная версия)
     try {
       const userCommentsCount = await Legend.aggregate([
         { $unwind: '$comments' },
@@ -882,8 +950,10 @@ app.post('/api/legends/:id/comments', authenticateToken, async (req, res) => {
       await checkAndAwardAchievements(req.user.id, 'comment', count);
     } catch (achievementError) {
       console.error('Ошибка при проверке достижений:', achievementError);
+      // Продолжаем выполнение, даже если достижения не сработали
     }
     
+    // Записываем активность (в блоке try-catch)
     try {
       await Activity.create({
         user: req.user.id,
@@ -896,6 +966,7 @@ app.post('/api/legends/:id/comments', authenticateToken, async (req, res) => {
       });
     } catch (activityError) {
       console.error('Ошибка при записи активности:', activityError);
+      // Продолжаем выполнение, даже если активность не записалась
     }
     
     res.status(201).json({ 
@@ -908,6 +979,7 @@ app.post('/api/legends/:id/comments', authenticateToken, async (req, res) => {
   }
 });
 
+// Удаление комментария
 app.delete('/api/legends/:legendId/comments/:commentId', authenticateToken, async (req, res) => {
   try {
     const { legendId, commentId } = req.params;
@@ -922,6 +994,7 @@ app.delete('/api/legends/:legendId/comments/:commentId', authenticateToken, asyn
       return res.status(404).json({ message: 'Комментарий не найден' });
     }
 
+    // Проверяем права: автор комментария или администратор
     if (comment.author.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Недостаточно прав для удаления комментария' });
     }
@@ -936,7 +1009,7 @@ app.delete('/api/legends/:legendId/comments/:commentId', authenticateToken, asyn
   }
 });
 
-// ========== СИСТЕМА ЖАЛОБ ==========
+// Система жалоб
 app.post('/api/report', authenticateToken, async (req, res) => {
   try {
     const { type, targetId, reason, description } = req.body;
@@ -951,6 +1024,7 @@ app.post('/api/report', authenticateToken, async (req, res) => {
     
     await report.save();
     
+    // Также добавляем жалобу к целевому объекту
     if (type === 'legend') {
       await Legend.findByIdAndUpdate(targetId, {
         $push: {
@@ -970,7 +1044,6 @@ app.post('/api/report', authenticateToken, async (req, res) => {
   }
 });
 
-// ========== АДМИН-ПАНЕЛЬ ==========
 app.put('/api/legends/:id/moderate', authenticateToken, isModerator, async (req, res) => {
     try {
         const { id } = req.params;
@@ -985,6 +1058,7 @@ app.put('/api/legends/:id/moderate', authenticateToken, isModerator, async (req,
             return res.status(404).json({ message: 'Легенда не найдена' });
         }
 
+        // Обновляем счетчик категории только при одобрении
         if (status === 'approved') {
             await Category.findOneAndUpdate(
                 { name: legend.category },
@@ -992,10 +1066,12 @@ app.put('/api/legends/:id/moderate', authenticateToken, isModerator, async (req,
             );
         }
 
+        // Обновляем статус легенды
         legend.status = status;
         legend.updatedAt = new Date();
         await legend.save();
 
+        // Если легенда одобрена, проверяем достижения автора
         if (status === 'approved') {
             const userLegendsCount = await Legend.countDocuments({ 
                 createdBy: legend.createdBy._id, 
@@ -1021,16 +1097,19 @@ app.delete('/api/legends/:id', authenticateToken, isModerator, async (req, res) 
     try {
         const { id } = req.params;
         
+        // ДОБАВЬТЕ ЭТОТ КОД СЮДА - получаем легенду перед удалением
         const legend = await Legend.findById(id);
         if (!legend) {
             return res.status(404).json({ message: 'Легенда не найдена' });
         }
         
+        // Обновляем счетчик категории
         await Category.findOneAndUpdate(
             { name: legend.category },
             { $inc: { legendCount: -1 } }
         );
         
+        // Удаляем легенду
         await Legend.findByIdAndDelete(id);
 
         res.json({ message: 'Легенда удалена' });
@@ -1040,6 +1119,7 @@ app.delete('/api/legends/:id', authenticateToken, isModerator, async (req, res) 
     }
 });
 
+// Получение статистики для админ-панели
 app.get('/api/admin/stats', authenticateToken, isAdmin, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
@@ -1071,6 +1151,7 @@ app.get('/api/admin/stats', authenticateToken, isAdmin, async (req, res) => {
   }
 });
 
+// Получение всех пользователей для админ-панели
 app.get('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
   try {
     const users = await User.find()
@@ -1084,6 +1165,7 @@ app.get('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
   }
 });
 
+// Получение легенд для модерации
 app.get('/api/admin/legends', authenticateToken, isModerator, async (req, res) => {
   try {
     const { status } = req.query;
@@ -1102,7 +1184,7 @@ app.get('/api/admin/legends', authenticateToken, isModerator, async (req, res) =
   }
 });
 
-// ========== ДОСТИЖЕНИЯ ==========
+// Роуты для системы достижений
 app.get('/api/achievements', authenticateToken, async (req, res) => {
   try {
     const achievements = await Achievement.find().sort({ requirement: 1 });
@@ -1128,6 +1210,7 @@ app.get('/api/achievements', authenticateToken, async (req, res) => {
   }
 });
 
+// История активности пользователя
 app.get('/api/activity', authenticateToken, async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
@@ -1155,6 +1238,7 @@ app.get('/api/activity', authenticateToken, async (req, res) => {
   }
 });
 
+// Управление ролями пользователей
 app.put('/api/admin/users/:id/role', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1184,6 +1268,7 @@ app.put('/api/admin/users/:id/role', authenticateToken, isAdmin, async (req, res
   }
 });
 
+// Блокировка/разблокировка пользователя
 app.put('/api/admin/users/:id/status', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1213,7 +1298,7 @@ app.put('/api/admin/users/:id/status', authenticateToken, isAdmin, async (req, r
   }
 });
 
-// ========== КАТЕГОРИИ ==========
+// Роуты для категорий
 app.get('/api/categories', async (req, res) => {
   try {
     const categories = await Category.find({ isActive: true }).sort({ name: 1 });
@@ -1280,6 +1365,7 @@ app.delete('/api/admin/categories/:id', authenticateToken, isAdmin, async (req, 
   try {
     const { id } = req.params;
     
+    // Проверяем, есть ли легенды в этой категории
     const legendsCount = await Legend.countDocuments({ category: id });
     if (legendsCount > 0) {
       return res.status(400).json({ 
@@ -1299,7 +1385,7 @@ app.delete('/api/admin/categories/:id', authenticateToken, isAdmin, async (req, 
   }
 });
 
-// ========== ЖАЛОБЫ ДЛЯ АДМИН-ПАНЕЛИ ==========
+// Получение жалоб для админ-панели
 app.get('/api/admin/reports', authenticateToken, isModerator, async (req, res) => {
   try {
     const { status, type } = req.query;
@@ -1320,6 +1406,7 @@ app.get('/api/admin/reports', authenticateToken, isModerator, async (req, res) =
   }
 });
 
+// Обработка жалоб
 app.put('/api/admin/reports/:id', authenticateToken, isModerator, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1350,10 +1437,12 @@ app.put('/api/admin/reports/:id', authenticateToken, isModerator, async (req, re
       return res.status(404).json({ message: 'Жалоба не найдена' });
     }
     
+    // Если жалоба принята, удаляем контент
     if (status === 'resolved') {
       if (report.type === 'legend') {
         await Legend.findByIdAndDelete(report.targetId);
       } else if (report.type === 'comment') {
+        // Находим легенду с этим комментарием и удаляем его
         const legend = await Legend.findOne({ 'comments._id': report.targetId });
         if (legend) {
           legend.comments.pull(report.targetId);
@@ -1372,19 +1461,23 @@ app.put('/api/admin/reports/:id', authenticateToken, isModerator, async (req, re
   }
 });
 
-// ========== ИНИЦИАЛИЗАЦИЯ ==========
+// Инициализация достижений при запуске
 const initializeAchievements = async () => {
     const achievements = [
+        // Достижения за легенды
         { title: 'Первый рассказ', description: 'Создайте первую легенду', icon: 'fas fa-book', type: 'legend', requirement: 1, points: 10 },
         { title: 'Собиратель историй', description: 'Создайте 5 легенд', icon: 'fas fa-book-open', type: 'legend', requirement: 5, points: 25 },
         { title: 'Мастер легенд', description: 'Создайте 10 легенд', icon: 'fas fa-books', type: 'legend', requirement: 10, points: 50, rarity: 'rare' },
         { title: 'Великий сказитель', description: 'Создайте 25 легенд', icon: 'fas fa-crown', type: 'legend', requirement: 25, points: 100, rarity: 'epic' },
         { title: 'Легендарный автор', description: 'Создайте 50 легенд', icon: 'fas fa-trophy', type: 'legend', requirement: 50, points: 200, rarity: 'legendary' },
+        
+        // Достижения за комментарии
         { title: 'Первый комментарий', description: 'Оставьте первый комментарий', icon: 'fas fa-comment', type: 'comment', requirement: 1, points: 5 },
         { title: 'Активный комментатор', description: 'Оставьте 10 комментариев', icon: 'fas fa-comments', type: 'comment', requirement: 10, points: 25 },
         { title: 'Общительный исследователь', description: 'Оставьте 25 комментариев', icon: 'fas fa-comment-dots', type: 'comment', requirement: 25, points: 50, rarity: 'rare' },
         { title: 'Мастер дискуссий', description: 'Оставьте 50 комментариев', icon: 'fas fa-comment-medical', type: 'comment', requirement: 50, points: 100, rarity: 'epic' },
         { title: 'Гуру общения', description: 'Оставьте 100 комментариев', icon: 'fas fa-comments', type: 'comment', requirement: 100, points: 200, rarity: 'legendary' },
+        
     ];
 
     for (const achievementData of achievements) {
@@ -1396,6 +1489,7 @@ const initializeAchievements = async () => {
     }
 };
 
+// Инициализация категорий при запуске
 const initializeCategories = async () => {
   const defaultCategories = [
     { name: 'Мистика', description: 'Загадочные и сверхъестественные истории', icon: 'fas fa-ghost', color: '#8e44ad' },
@@ -1413,23 +1507,24 @@ const initializeCategories = async () => {
   }
 };
 
-// ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.use(express.static(path.join(__dirname)));
 
-// ========== ЗАПУСК СЕРВЕРА ==========
+// Запуск сервера
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     console.log('MongoDB connected');
+
     await initializeAchievements();
     await initializeCategories();
+
     app.listen(PORT, () => {
       console.log(`Сервер запущен на порту ${PORT}`);
     });
   })
   .catch(err => {
-    console.error('Ошибка при запуске сервера:', err);
+    console.error(err);
   });
